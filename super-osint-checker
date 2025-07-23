@@ -13,7 +13,7 @@ reset="\e[0m"
 
 echo "Target,Platform,Status,Details,Link,HTTP_Code,Timestamp" > results/final_output.csv
 
-TARGETS=("prcsmama@gmail.com" "lcummings73@outlook.com" lcummings@frameteksteel.com" "prcsmama@yahoo.com" "prcsmama2@gmail.com" "EhlC73@outlook.com" "9517766827" "9092408360")
+TARGETS=("prcsmama@gmail.com" "lcummings73@outlook.com" "lcummings@frameteksteel.com" "prcsmama@yahoo.com" "prcsmama2@gmail.com" "EhlC73@outlook.com" "9517766827" "9092408360")
 
 get_timestamp() {
   date '+%Y-%m-%d %H:%M:%S'
