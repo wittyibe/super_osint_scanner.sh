@@ -1,92 +1,126 @@
 #!/bin/bash
 
-EMAILS=(
-    "lcummings73@outlook.com"
-    "prcsmama@gmail.com"
-    "binxboxall@yahoo.com"
-    "patricksquarepants@hotmail.com"
-    "prcsmama@hotmail.com"
-    "prcsmama@yahoo.com"
-    "lcummings@frameteksteel.com"
-    "ehlc73@outlook.com"
-)
+# superb-checker-v3-lite.sh
+# Real detection OSINT scanner for key dating platforms
 
-USERNAMES=(
-    "silver_06"
-)
+mkdir -p logs results
 
-PLATFORMS=(
-    "tinder.com"
-    "plentyoffish.com"
-    "bumble.com"
-    "badoo.com"
-    "ashleymadison.com"
-    "okcupid.com"
-    "skype.com"
-    "teams.microsoft.com"
-    "line.me"
-    "twilio.com"
-    "facebook.com"
-    "snapchat.com"
-    "instagram.com"
-    "pof.com"
-    "zoosk.com"
-    "tagged.com"
-    "fetlife.com"
-    "grindr.com"
-    "kik.com"
-    "blackpeoplemeet.com"
-    "adultfriendfinder.com"
-    "hinge.co"
-    "tawk.to"
-    "hily.com"
-    "telegram.org"
-    "match.com"
-    "seeking.com"
-    "recon.com"
-    "flirt.com"
-    "sdc.com"
-)
+green="\e[92m"
+red="\e[91m"
+yellow="\e[93m"
+reset="\e[0m"
 
-mkdir -p super_osint_logs/email_logs
-mkdir -p super_osint_logs/username_logs
+echo "Target,Platform,Status,Details,Link,Timestamp" > results/final_output.csv
 
-check_email() {
-    email=$1
-    echo "Checking email: $email"
-    for site in "${PLATFORMS[@]}"; do
-        response=$(curl -s -I -L -m 15 -A "Mozilla/5.0" "https://$site/forgot-password" 2>/dev/null)
-        status=$(echo "$response" | grep HTTP | tail -n1 | awk '{print $2}')
-        redirect=$(echo "$response" | grep -i 'Location:' | tail -n1 | awk '{print $2}')
-        echo "[EMAIL: $email] [$site] Status: $status Redirect: $redirect" | tee -a "super_osint_logs/email_logs/$email.log"
-    done
+TARGETS=("lcummings73@outlook.com" "prcsmama@gmail.com" "prcsmama2@gmail.com" "prcsmama@yahoo.com" "binxboxall@yahoo.com" "9517766827" "lcummings@frameteksteel.com" "9092408360")
+PLATFORMS=("bumble" "tinder" "pof" "ashleymadison" "match")
+
+get_timestamp() {
+  date '+%Y-%m-%d %H:%M:%S'
 }
 
-check_username() {
-    user=$1
-    echo "Checking username: $user"
-    for site in "${PLATFORMS[@]}"; do
-        url="https://$site/$user"
-        response=$(curl -s -I -L -m 15 -A "Mozilla/5.0" "$url" 2>/dev/null)
-        status=$(echo "$response" | grep HTTP | tail -n1 | awk '{print $2}')
-        redirect=$(echo "$response" | grep -i 'Location:' | tail -n1 | awk '{print $2}')
-        echo "[USERNAME: $user] [$site] Status: $status Redirect: $redirect" | tee -a "super_osint_logs/username_logs/$user.log"
-    done
+log_result() {
+  local target=$1
+  local platform=$2
+  local result=$3
+  local message=$4
+  local link=$5
+  local ts=$(get_timestamp)
+  echo -e "[$ts] $platform | $target | $result | $message"
+  echo "$target,$platform,$result,$message,$link,$ts" >> results/final_output.csv
+  echo "[$ts] $platform | $target | $result | $message | $link" >> "logs/${target}_${platform}.log"
 }
 
-main() {
-    echo "Running Super OSINT Scanner at $(date)" > super_osint_logs/summary_report.txt
-    for email in "${EMAILS[@]}"; do
-        check_email "$email"
-    done
-
-    for user in "${USERNAMES[@]}"; do
-        check_username "$user"
-    done
-    echo "Scan complete. Logs saved to super_osint_logs/."
+check_bumble() {
+  local target=$1
+  local platform="bumble"
+  local ts=$(get_timestamp)
+  local url="https://bumble.com/api/v1/users/password-reset"
+  
+  response=$(curl -s -w "%{http_code}" -o /dev/null -X POST "$url" \
+    -H "Content-Type: application/json" \
+    --data "{\"email\":\"$target\"}")
+  
+  if [[ "$response" == "200" ]]; then
+    log_result "$target" "$platform" "FOUND" "Account exists or accepted password reset" "https://bumble.com"
+  else
+    log_result "$target" "$platform" "NOT FOUND" "No reset sent or user not recognized" "https://bumble.com"
+  fi
 }
 
-main
+check_tinder() {
+  local target=$1
+  local platform="tinder"
+  local url="https://api.gotinder.com/v2/auth/reset_password"
+  
+  response=$(curl -s -w "%{http_code}" -o /dev/null -X POST "$url" \
+    -H "Content-Type: application/json" \
+    --data "{\"email\":\"$target\"}")
+  
+  if [[ "$response" == "200" ]]; then
+    log_result "$target" "$platform" "FOUND" "Email accepted for password reset" "https://tinder.com"
+  else
+    log_result "$target" "$platform" "NOT FOUND" "Tinder does not recognize this email" "https://tinder.com"
+  fi
+}
 
+check_pof() {
+  local target=$1
+  local platform="pof"
+  local url="https://www.pof.com/forgotpassword"
+  
+  response=$(curl -s -X POST "$url" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    --data "emailaddress=$target")
+  
+  if echo "$response" | grep -qi "email was sent"; then
+    log_result "$target" "$platform" "FOUND" "POF says email was sent" "https://www.pof.com"
+  else
+    log_result "$target" "$platform" "NOT FOUND" "POF shows error or no match" "https://www.pof.com"
+  fi
+}
 
+check_ashley_madison() {
+  local target=$1
+  local platform="ashleymadison"
+  local url="https://www.ashleymadison.com/password/email"
+  
+  response=$(curl -s -X POST "$url" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    --data "email=$target")
+  
+  if echo "$response" | grep -qi "email has been sent"; then
+    log_result "$target" "$platform" "FOUND" "Ashley Madison accepted password reset" "https://www.ashleymadison.com"
+  else
+    log_result "$target" "$platform" "NOT FOUND" "Email not found" "https://www.ashleymadison.com"
+  fi
+}
 
+check_match() {
+  local target=$1
+  local platform="match"
+  local url="https://www.match.com/login/ForgotPassword"
+
+  response=$(curl -s -X POST "$url" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    --data "email=$target")
+
+  if echo "$response" | grep -qi "If your email is registered"; then
+    log_result "$target" "$platform" "FOUND" "Match.com accepted the email for reset" "https://www.match.com"
+  else
+    log_result "$target" "$platform" "NOT FOUND" "Match.com did not recognize the email" "https://www.match.com"
+  fi
+}
+
+# Main execution
+for target in "${TARGETS[@]}"; do
+  echo -e "\n🔎 Scanning $target..."
+  check_bumble "$target"
+  check_tinder "$target"
+  check_pof "$target"
+  check_ashley_madison "$target"
+  check_match "$target"
+  sleep 1
+done
+
+echo -e "\n✅ All checks complete. Logs in /logs/, results saved to results/final_output.csv"
