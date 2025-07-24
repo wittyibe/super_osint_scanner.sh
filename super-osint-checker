@@ -1,629 +1,1340 @@
-
 #!/bin/bash
 
-# superb-checker-v2.sh – Unified OSINT Metadata Extraction Script
-# Author: OSINT Toolkit
-# Version: v2.0
-# Description: Checks presence of email/usernames across all dating, messenger, and social platforms.
-# Features: Extracts usernames, profile URLs, last login date, account creation date, photos, phone numbers, and chats when possible.
-# Usage: ./superb-checker-v2.sh email1@example.com email2@example.com ...
+# ===================[ Superb Checker v1.0 ]===================
+# Multi-platform OSINT script to detect presence of email/phone
+# across dating apps, messenger apps, and social networks.
+# Author: OpenAI x User
+# =============================================================
 
-EMAILS=("@")
-mkdir -p results metadata logs
+log_file="superb-checker.log"
+csv_file="superb-checker.csv"
 
 log_result() {
-  local platform="$1"
-  local email="$2"
-  local result="$3"
-  echo -e "$platform,$email,$result" >> results/superb-metadata.csv
+    platform="$1"
+    type="$2"
+    input="$3"
+    found="$4"
+    username="$5"
+    profile_url="$6"
+    created="$7"
+    last_seen="$8"
+    picture_url="$9"
+
+    echo "[+] $platform | $type: $input | FOUND: $found" | tee -a "$log_file"
+    echo "$platform,$type,$input,$found,$username,$profile_url,$created,$last_seen,$picture_url" >> "$csv_file"
 }
 
-
-check_tinder() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Tinder for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Tinder check stub (implement logic)"
-    log_result "Tinder" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_pof() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking POF for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] POF check stub (implement logic)"
-    log_result "POF" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_bumble() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Bumble for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Bumble check stub (implement logic)"
-    log_result "Bumble" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_facebook() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Facebook for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Facebook check stub (implement logic)"
-    log_result "Facebook" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_messenger() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Messenger for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Messenger check stub (implement logic)"
-    log_result "Messenger" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_instagram() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Instagram for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Instagram check stub (implement logic)"
-    log_result "Instagram" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_snapchat() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Snapchat for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Snapchat check stub (implement logic)"
-    log_result "Snapchat" "$email" "NOT IMPLEMENTED"
-  done
-}
+# -------------[ Platform Checks ]-----------------------------
 
 check_whatsapp() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking WhatsApp for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] WhatsApp check stub (implement logic)"
-    log_result "WhatsApp" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_line() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking LINE for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] LINE check stub (implement logic)"
-    log_result "LINE" "$email" "NOT IMPLEMENTED"
-  done
+    phone="$1"
+    echo "[*] Checking WhatsApp for $phone..."
+    url="https://api.whatsapp.com/send?phone=$phone"
+    response=$(curl -s -L -o /dev/null -w "%{http_code}" "$url")
+    if [[ "$response" == "200" ]]; then
+        log_result "WhatsApp" "phone" "$phone" "YES" "" "$url" "" "" ""
+    else
+        log_result "WhatsApp" "phone" "$phone" "NO" "" "" "" "" ""
+    fi
 }
 
 check_skype() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Skype for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Skype check stub (implement logic)"
-    log_result "Skype" "$email" "NOT IMPLEMENTED"
-  done
+    email="$1"
+    echo "[*] Checking Skype for $email..."
+    url="https://login.skype.com/account/password-reset-request"
+    response=$(curl -s -X POST -H "Content-Type: application/json" -d '{"username":"'"$email"'"}' "$url")
+    if echo "$response" | grep -q "Weâ€™ve sent a"; then
+        log_result "Skype" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Skype" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
-check_twilio() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Twilio for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Twilio check stub (implement logic)"
-    log_result "Twilio" "$email" "NOT IMPLEMENTED"
-  done
+check_facebook_messenger() {
+    email="$1"
+    echo "[*] Checking Facebook Messenger for $email..."
+    url="https://www.facebook.com/login/identify/?ctx=recover"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -q "did not match any account"; then
+        log_result "Facebook Messenger" "email" "$email" "NO" "" "" "" "" ""
+    else
+        log_result "Facebook Messenger" "email" "$email" "YES" "" "" "" "" ""
+    fi
+}
+
+check_discord() {
+    email="$1"
+    echo "[*] Checking Discord for $email..."
+    url="https://discord.com/api/v9/auth/forgot"
+    response=$(curl -s -X POST -H "Content-Type: application/json" -d '{"email":"'"$email"'"}' "$url")
+    if echo "$response" | grep -q "success"; then
+        log_result "Discord" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Discord" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_bumble() {
+    email="$1"
+    echo "[*] Checking Bumble for $email..."
+    url="https://bumble.com/recovery"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "sent you a recovery"; then
+        log_result "Bumble" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Bumble" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_line() {
+    email="$1"
+    echo "[*] Checking LINE for $email..."
+    # Simulated; no open endpoint
+    log_result "LINE" "email" "$email" "UNKNOWN" "" "" "" "" ""
+}
+
+check_telegram() {
+    phone="$1"
+    echo "[*] Checking Telegram for $phone..."
+    # Simulated; Telegram requires app/session auth
+    log_result "Telegram" "phone" "$phone" "UNKNOWN" "" "" "" "" ""
+}
+
+check_signal() {
+    phone="$1"
+    echo "[*] Checking Signal for $phone..."
+    # Simulated; no open API to validate presence
+    log_result "Signal" "phone" "$phone" "UNKNOWN" "" "" "" "" ""
+}
+
+check_badoo() {
+    email="$1"
+    echo "[*] Checking Badoo for $email..."
+    url="https://badoo.com/signin/"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -q "check your inbox"; then
+        log_result "Badoo" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Badoo" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_pof() {
+    email="$1"
+    echo "[*] Checking Plenty of Fish for $email..."
+    url="https://www.pof.com/forgotpassword"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "check your email"; then
+        log_result "Plenty of Fish" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Plenty of Fish" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+# -------------[ MAIN LOOP ]-----------------------------
+
+main() {
+    > "$log_file"
+    echo "Platform,Type,Input,Found,Username,Profile URL,Created,Last Seen,Picture URL" > "$csv_file"
+
+    echo -n "Enter email(s) separated by commas: "
+    read emails
+    echo -n "Enter phone number(s) separated by commas (no spaces): "
+    read phones
+
+    IFS=',' read -ra email_array <<< "$emails"
+    IFS=',' read -ra phone_array <<< "$phones"
+
+    for email in "${email_array[@]}"; do
+        check_skype "$email"
+        check_facebook_messenger "$email"
+        check_discord "$email"
+        check_bumble "$email"
+        check_line "$email"
+        check_badoo "$email"
+        check_pof "$email"
+    done
+
+    for phone in "${phone_array[@]}"; do
+        check_whatsapp "$phone"
+        check_telegram "$phone"
+        check_signal "$phone"
+    done
+}
+
+main
+
+
+check_tinder() {
+    email="$1"
+    echo "[*] Checking Tinder for $email..."
+    url="https://api.gotinder.com/v2/auth/account/validate"
+    response=$(curl -s -X POST -H "Content-Type: application/json" -d '{"email":"'"$email"'"}' "$url")
+    if echo "$response" | grep -q "email_sent"; then
+        log_result "Tinder" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Tinder" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
 check_ashleymadison() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking AshleyMadison for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] AshleyMadison check stub (implement logic)"
-    log_result "AshleyMadison" "$email" "NOT IMPLEMENTED"
-  done
+    email="$1"
+    echo "[*] Checking Ashley Madison for $email..."
+    url="https://www.ashleymadison.com/account/forgot_password.phtml"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Ashley Madison" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Ashley Madison" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
-check_seeking() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Seeking for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Seeking check stub (implement logic)"
-    log_result "Seeking" "$email" "NOT IMPLEMENTED"
-  done
+check_instagram() {
+    email="$1"
+    echo "[*] Checking Instagram for $email..."
+    url="https://www.instagram.com/accounts/account_recovery_send_ajax/"
+    response=$(curl -s -X POST -d "email_or_username=$email" "$url")
+    if echo "$response" | grep -qi "sent"; then
+        log_result "Instagram" "email" "$email" "YES" "" "https://instagram.com/$email" "" "" ""
+    else
+        log_result "Instagram" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
-check_raya() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Raya for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Raya check stub (implement logic)"
-    log_result "Raya" "$email" "NOT IMPLEMENTED"
-  done
+check_twitter() {
+    email="$1"
+    echo "[*] Checking Twitter for $email..."
+    url="https://api.twitter.com/i/api/i/account/pw_reset"
+    response=$(curl -s -X POST -H "Content-Type: application/json" -d '{"email":"'"$email"'"}' "$url")
+    if echo "$response" | grep -qi "email_sent"; then
+        log_result "Twitter" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Twitter" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
-check_luxy() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Luxy for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Luxy check stub (implement logic)"
-    log_result "Luxy" "$email" "NOT IMPLEMENTED"
-  done
+check_tiktok() {
+    email="$1"
+    echo "[*] Checking TikTok for $email..."
+    url="https://www.tiktok.com/forgot-password/email"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "check your email"; then
+        log_result "TikTok" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "TikTok" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
-check_down() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Down for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Down check stub (implement logic)"
-    log_result "Down" "$email" "NOT IMPLEMENTED"
-  done
+check_snapchat() {
+    email="$1"
+    echo "[*] Checking Snapchat for $email..."
+    url="https://accounts.snapchat.com/accounts/password_reset_request"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "we have sent"; then
+        log_result "Snapchat" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Snapchat" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
-check_pure() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Pure for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Pure check stub (implement logic)"
-    log_result "Pure" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_wild() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Wild for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Wild check stub (implement logic)"
-    log_result "Wild" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_zozochat() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking ZozoChat for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] ZozoChat check stub (implement logic)"
-    log_result "ZozoChat" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_meetme() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking MeetMe for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] MeetMe check stub (implement logic)"
-    log_result "MeetMe" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_lovoo() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Lovoo for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Lovoo check stub (implement logic)"
-    log_result "Lovoo" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_jaumo() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Jaumo for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Jaumo check stub (implement logic)"
-    log_result "Jaumo" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_flirt.com() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Flirt.com for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Flirt.com check stub (implement logic)"
-    log_result "Flirt.com" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_imeetzu() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking iMeetzu for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] iMeetzu check stub (implement logic)"
-    log_result "iMeetzu" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_adultfriendfinder() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking AdultFriendFinder for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] AdultFriendFinder check stub (implement logic)"
-    log_result "AdultFriendFinder" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_alt() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Alt for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Alt check stub (implement logic)"
-    log_result "Alt" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_fastmeet() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking FastMeet for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] FastMeet check stub (implement logic)"
-    log_result "FastMeet" "$email" "NOT IMPLEMENTED"
-  done
-}
 
 check_grindr() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Grindr for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Grindr check stub (implement logic)"
-    log_result "Grindr" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_feeld() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Feeld for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Feeld check stub (implement logic)"
-    log_result "Feeld" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_hinge() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Hinge for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Hinge check stub (implement logic)"
-    log_result "Hinge" "$email" "NOT IMPLEMENTED"
-  done
+    email="$1"
+    echo "[*] Checking Grindr for $email..."
+    url="https://grindr.com/password-reset"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Grindr" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Grindr" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
 check_okcupid() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking OkCupid for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] OkCupid check stub (implement logic)"
-    log_result "OkCupid" "$email" "NOT IMPLEMENTED"
-  done
+    email="$1"
+    echo "[*] Checking OkCupid for $email..."
+    url="https://www.okcupid.com/login"
+    response=$(curl -s -X POST -d "username=$email" "$url")
+    if echo "$response" | grep -qi "We sent an email"; then
+        log_result "OkCupid" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "OkCupid" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
-check_match.com() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Match.com for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Match.com check stub (implement logic)"
-    log_result "Match.com" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_eharmony() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking eHarmony for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] eHarmony check stub (implement logic)"
-    log_result "eHarmony" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_tagged() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Tagged for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Tagged check stub (implement logic)"
-    log_result "Tagged" "$email" "NOT IMPLEMENTED"
-  done
+check_aff() {
+    email="$1"
+    echo "[*] Checking AdultFriendFinder for $email..."
+    url="https://adultfriendfinder.com/p/member.cgi?function=forgot_password"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "AdultFriendFinder" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "AdultFriendFinder" "email" "NO" "" "" "" "" ""
+    fi
 }
 
 check_kik() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Kik for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Kik check stub (implement logic)"
-    log_result "Kik" "$email" "NOT IMPLEMENTED"
-  done
+    email="$1"
+    echo "[*] Checking Kik for $email..."
+    url="https://ws2.kik.com/p"
+    response=$(curl -s -X POST -d '{"email":"'"$email"'"}' -H "Content-Type: application/json" "$url")
+    if echo "$response" | grep -qi "already in use"; then
+        log_result "Kik" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Kik" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_textnow() {
+    email="$1"
+    echo "[*] Checking TextNow for $email..."
+    url="https://www.textnow.com/forgot"
+    response=$(curl -s -X POST -d "username=$email" "$url")
+    if echo "$response" | grep -qi "we just emailed you"; then
+        log_result "TextNow" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "TextNow" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_twilio() {
+    email="$1"
+    echo "[*] Checking Twilio for $email..."
+    url="https://www.twilio.com/user/password/forgot"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Twilio" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Twilio" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_wire() {
+    email="$1"
+    echo "[*] Checking Wire for $email..."
+    url="https://app.wire.com/auth/reset"
+    response=$(curl -s -X POST -H "Content-Type: application/json" -d '{"email":"'"$email"'"}' "$url")
+    if echo "$response" | grep -qi "success"; then
+        log_result "Wire" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Wire" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+
+check_hinge() {
+    email="$1"
+    echo "[*] Checking Hinge for $email..."
+    url="https://hinge.co/forgot-password"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email sent"; then
+        log_result "Hinge" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Hinge" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_zoosk() {
+    email="$1"
+    echo "[*] Checking Zoosk for $email..."
+    url="https://www.zoosk.com/forgotpassword"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "Weâ€™ve sent an email"; then
+        log_result "Zoosk" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Zoosk" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_meetme() {
+    email="$1"
+    echo "[*] Checking MeetMe for $email..."
+    url="https://www.meetme.com/forgot"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "MeetMe" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "MeetMe" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
 check_telegram() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Telegram for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Telegram check stub (implement logic)"
-    log_result "Telegram" "$email" "NOT IMPLEMENTED"
-  done
+    email="$1"
+    echo "[*] Checking Telegram for $email (email presence unlikely)..."
+    # Telegram usually binds to phone not email; we'll note non-support
+    log_result "Telegram" "email" "$email" "UNSUPPORTED" "" "" "" "" ""
 }
 
-check_wechat() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking WeChat for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] WeChat check stub (implement logic)"
-    log_result "WeChat" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_viber() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Viber for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Viber check stub (implement logic)"
-    log_result "Viber" "$email" "NOT IMPLEMENTED"
-  done
+check_signal() {
+    email="$1"
+    echo "[*] Checking Signal for $email (email not supported)..."
+    log_result "Signal" "email" "$email" "UNSUPPORTED" "" "" "" "" ""
 }
 
 check_reddit() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Reddit for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] Reddit check stub (implement logic)"
-    log_result "Reddit" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_onlyfans() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking OnlyFans for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] OnlyFans check stub (implement logic)"
-    log_result "OnlyFans" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_xmatch() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking XMatch for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] XMatch check stub (implement logic)"
-    log_result "XMatch" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-check_snapsext() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking SnapSext for: $email"
-    # Add platform-specific logic here using curl or appropriate endpoint
-    # Extract: username, created_on, last_login, profile_pic_url, visible chats if available
-    echo "[-] SnapSext check stub (implement logic)"
-    log_result "SnapSext" "$email" "NOT IMPLEMENTED"
-  done
-}
-
-
-# === Run Checks ===
-check_tinder
-check_pof
-check_bumble
-check_facebook
-check_messenger
-check_instagram
-check_snapchat
-check_whatsapp
-check_line
-check_skype
-check_twilio
-check_ashleymadison
-check_seeking
-check_raya
-check_luxy
-check_down
-check_pure
-check_wild
-check_zozochat
-check_meetme
-check_lovoo
-check_jaumo
-check_flirt.com
-check_imeetzu
-check_adultfriendfinder
-check_alt
-check_fastmeet
-check_grindr
-check_feeld
-check_hinge
-check_okcupid
-check_match.com
-check_eharmony
-check_tagged
-check_kik
-check_telegram
-check_wechat
-check_viber
-check_reddit
-check_onlyfans
-check_xmatch
-check_snapsext
-
-echo -e "\n✅ Done. Results saved in: results/superb-metadata.csv"
-
-#!/bin/bash
-
-# === Next Drop: Functional Logic for Key Platforms ===
-
-# Setup
-EMAILS=("$@")
-mkdir -p results metadata logs
-
-log_found() {
-  echo -e "\033[1;32m✅ FOUND\033[0m - $1"
-}
-log_not_found() {
-  echo -e "\033[1;31m❌ NOT FOUND\033[0m - $1"
-}
-
-# Tinder logic sample (simulate password reset to check existence)
-check_tinder() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Tinder for: $email"
-    RESPONSE=$(curl -s -X POST "https://api.gotinder.com/v2/auth/reset" -H "Content-Type: application/json" -d '{"email":"'"$email"'"}')
-    if [[ "$RESPONSE" == *"success"* ]]; then
-      log_found "Tinder account exists for $email"
-      echo "Tinder,$email,FOUND" >> results/superb-metadata.csv
+    email="$1"
+    echo "[*] Checking Reddit for $email..."
+    url="https://www.reddit.com/password"
+    response=$(curl -s -X POST -d "email=$email" -A "Mozilla/5.0" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Reddit" "email" "$email" "YES" "" "" "" "" ""
     else
-      log_not_found "Tinder account not found for $email"
-      echo "Tinder,$email,NOT FOUND" >> results/superb-metadata.csv
+        log_result "Reddit" "email" "$email" "NO" "" "" "" "" ""
     fi
-  done
 }
 
-# Bumble (simulated)
-check_bumble() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Bumble for: $email"
-    # Simulated placeholder
-    log_not_found "Bumble API access not available without token"
-    echo "Bumble,$email,NOT IMPLEMENTED" >> results/superb-metadata.csv
-  done
-}
-
-# Snapchat (simulated)
-check_snapchat() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Snapchat for: $email"
-    # Placeholder logic
-    log_not_found "Snapchat API not public. Manual check required."
-    echo "Snapchat,$email,NOT IMPLEMENTED" >> results/superb-metadata.csv
-  done
-}
-
-# Run checks
-check_tinder
-check_bumble
-check_snapchat
-
-echo -e "\n✅ This drop executed. More sites coming in next drop..."
-
-#!/bin/bash
-
-# === Next Drop 2: Facebook, Instagram, WhatsApp, Telegram, Seeking ===
-
-EMAILS=("$@")
-
-log_found() {
-  echo -e "\033[1;32m✅ FOUND\033[0m - $1"
-}
-log_not_found() {
-  echo -e "\033[1;31m❌ NOT FOUND\033[0m - $1"
-}
-
-# Facebook lookup via login page redirect behavior
-check_facebook() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Facebook for: $email"
-    RESPONSE=$(curl -s -X POST "https://www.facebook.com/login/identify/"       -H "Content-Type: application/x-www-form-urlencoded"       -d "email=$email&did_submit=Search")
-
-    if [[ "$RESPONSE" == *"We found"* || "$RESPONSE" == *"profile picture"* ]]; then
-      log_found "Facebook account exists for $email"
-      echo "Facebook,$email,FOUND" >> results/superb-metadata.csv
+check_linkedin() {
+    email="$1"
+    echo "[*] Checking LinkedIn for $email..."
+    url="https://www.linkedin.com/checkpoint/rp/request-password-reset"
+    response=$(curl -s -X POST -d "userName=$email" "$url")
+    if echo "$response" | grep -qi "We just emailed a link"; then
+        log_result "LinkedIn" "email" "$email" "YES" "" "" "" "" ""
     else
-      log_not_found "Facebook account not found for $email"
-      echo "Facebook,$email,NOT FOUND" >> results/superb-metadata.csv
+        log_result "LinkedIn" "email" "$email" "NO" "" "" "" "" ""
     fi
-  done
 }
 
-# Instagram lookup
-check_instagram() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Instagram for: $email"
-    RESPONSE=$(curl -s -X POST "https://www.instagram.com/accounts/account_recovery_send_ajax/"       -H "Content-Type: application/x-www-form-urlencoded"       -H "X-CSRFToken: missing"       -d "email_or_username=$email")
-
-    if [[ "$RESPONSE" == *"status"* && "$RESPONSE" == *"ok"* ]]; then
-      log_found "Instagram account may exist for $email"
-      echo "Instagram,$email,FOUND" >> results/superb-metadata.csv
+check_youtube() {
+    email="$1"
+    echo "[*] Checking YouTube (via Google Account) for $email..."
+    url="https://accounts.google.com/signin/v2/usernamerecovery"
+    response=$(curl -s -X POST -d "identifier=$email" "$url")
+    if echo "$response" | grep -qi "Google Account"; then
+        log_result "YouTube (Google)" "email" "$email" "YES" "" "" "" "" ""
     else
-      log_not_found "Instagram account not found for $email"
-      echo "Instagram,$email,NOT FOUND" >> results/superb-metadata.csv
+        log_result "YouTube (Google)" "email" "$email" "NO" "" "" "" "" ""
     fi
-  done
 }
 
-# WhatsApp (check via wa.me redirect pattern)
-check_whatsapp() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] WhatsApp check requires phone, not email: $email"
-    echo "WhatsApp,$email,NEEDS PHONE" >> results/superb-metadata.csv
-  done
+
+check_match() {
+    email="$1"
+    echo "[*] Checking Match.com for $email..."
+    url="https://www.match.com/forgotpassword"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "We've sent you an email"; then
+        log_result "Match.com" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Match.com" "email" "$email" "NO" "" "" "" "" ""
+    fi
 }
 
-# Telegram placeholder
+check_fetlife() {
+    email="$1"
+    echo "[*] Checking FetLife for $email..."
+    url="https://fetlife.com/users/password/new"
+    response=$(curl -s -X POST -d "user[email]=$email" "$url")
+    if echo "$response" | grep -qi "password reset link"; then
+        log_result "FetLife" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "FetLife" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_textplus() {
+    email="$1"
+    echo "[*] Checking TextPlus for $email..."
+    url="https://www.textplus.com/forgot-password"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email sent"; then
+        log_result "TextPlus" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "TextPlus" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_kik_metadata() {
+    email="$1"
+    echo "[*] Checking Kik (metadata scan)..."
+    # Kik metadata usually only accessible by username/phone, flagging unsupported for email
+    log_result "Kik (metadata)" "email" "$email" "UNSUPPORTED" "" "" "" "" ""
+}
+
+check_clubhouse() {
+    email="$1"
+    echo "[*] Checking Clubhouse for $email..."
+    url="https://www.joinclubhouse.com/reset"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Clubhouse" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Clubhouse" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_google_voice() {
+    email="$1"
+    echo "[*] Checking Google Voice (via Google)..."
+    url="https://accounts.google.com/signin/v2/usernamerecovery"
+    response=$(curl -s -X POST -d "identifier=$email" "$url")
+    if echo "$response" | grep -qi "Google Account"; then
+        log_result "Google Voice" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Google Voice" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_tagged() {
+    email="$1"
+    echo "[*] Checking Tagged.com for $email..."
+    url="https://secure.tagged.com/forgot_password.html"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "we sent a password reset"; then
+        log_result "Tagged" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Tagged" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_chatango() {
+    email="$1"
+    echo "[*] Checking Chatango for $email..."
+    url="https://chatango.com/forgot"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Chatango" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Chatango" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+
+check_plenty_of_fish() {
+    email="$1"
+    echo "[*] Checking Plenty of Fish (POF) for $email..."
+    url="https://www.pof.com/forgotpassword"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Plenty of Fish" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Plenty of Fish" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_snapchat_username() {
+    username="$1"
+    echo "[*] Checking Snapchat profile for $username..."
+    profile_url="https://story.snapchat.com/@$username"
+    response=$(curl -s -o /dev/null -w "%{http_code}" "$profile_url")
+    if [ "$response" -eq 200 ]; then
+        log_result "Snapchat" "username" "$username" "YES" "$profile_url" "" "" "" ""
+    else
+        log_result "Snapchat" "username" "$username" "NO" "" "" "" "" ""
+    fi
+}
+
+check_apple_imessage() {
+    email="$1"
+    echo "[*] Checking Apple iMessage/FaceTime for $email (manual flag)..."
+    # No public API, flagging as manual check
+    log_result "iMessage/FaceTime" "email" "$email" "UNCONFIRMED - MANUAL CHECK" "" "" "" "" ""
+}
+
+check_tinder_metadata() {
+    email="$1"
+    echo "[*] Checking Tinder metadata for $email (advanced)..."
+    # No direct Tinder metadata without auth, flag for manual follow-up
+    log_result "Tinder Metadata" "email" "$email" "UNAVAILABLE (Login Required)" "" "" "" "" ""
+}
+
+check_adultcam_sites() {
+    email="$1"
+    echo "[*] Flagging adult cam site OSINT for $email..."
+    log_result "Adult Cam Sites" "email" "$email" "FLAGGED FOR MANUAL REVIEW" "" "" "" "" ""
+}
+
+check_darkweb_traces() {
+    email="$1"
+    echo "[*] Checking dark web for $email (manual/DB required)..."
+    log_result "Dark Web Trace" "email" "$email" "REQUIRES MANUAL SCRAPE/LEAK DB" "" "" "" "" ""
+}
+
+check_facebook_lastseen() {
+    email="$1"
+    echo "[*] Facebook last seen not available via public endpoints..."
+    log_result "Facebook Messenger" "email" "$email" "UNAVAILABLE - AUTH REQUIRED" "" "" "" "" ""
+}
+
+
+check_whisper() {
+    email="$1"
+    echo "[*] Checking Whisper for $email (flag)..."
+    log_result "Whisper" "email" "$email" "NO PUBLIC API - MANUAL REVIEW" "" "" "" "" ""
+}
+
+check_ashley_madison() {
+    email="$1"
+    echo "[*] Checking Ashley Madison for $email..."
+    url="https://www.ashleymadison.com/en/member/forgot-password"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "password reset"; then
+        log_result "Ashley Madison" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Ashley Madison" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_tango() {
+    email="$1"
+    echo "[*] Tango check for $email flagged for manual login analysis..."
+    log_result "Tango" "email" "$email" "UNCONFIRMED - MANUAL FOLLOW-UP" "" "" "" "" ""
+}
+
+check_tracfone() {
+    email="$1"
+    echo "[*] Tracfone account presence cannot be confirmed via email..."
+    log_result "Tracfone" "email" "$email" "NO PUBLIC ENDPOINT - FLAGGED" "" "" "" "" ""
+}
+
+check_yubo() {
+    email="$1"
+    echo "[*] Checking Yubo for $email..."
+    url="https://www.yubo.live/api/v4/auth/reset_password"
+    response=$(curl -s -X POST -H "Content-Type: application/json" -d "{"email":"$email"}" "$url")
+    if echo "$response" | grep -qi "email_sent"; then
+        log_result "Yubo" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Yubo" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_omegle_flag() {
+    email="$1"
+    echo "[*] Omegle does not use email login - no traceable metadata..."
+    log_result "Omegle" "email" "$email" "NOT APPLICABLE - NO EMAIL SYSTEM" "" "" "" "" ""
+}
+
+check_kik_advanced() {
+    email="$1"
+    echo "[*] Kik advanced metadata requires device access or push ID..."
+    log_result "Kik (Advanced)" "email" "$email" "MANUAL DEVICE PROBE ONLY" "" "" "" "" ""
+}
+
+
+check_grindr() {
+    email="$1"
+    echo "[*] Checking Grindr (email) for $email..."
+    url="https://auth.grindr.com/v1/password-reset"
+    response=$(curl -s -X POST -H "Content-Type: application/json" -d "{"email":"$email"}" "$url")
+    if echo "$response" | grep -qi "email_sent"; then
+        log_result "Grindr" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Grindr" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_okcupid_advanced() {
+    email="$1"
+    echo "[*] Checking OkCupid metadata for $email..."
+    url="https://www.okcupid.com/login"
+    response=$(curl -s -X POST -d "username=$email&password=invalidpass" "$url")
+    if echo "$response" | grep -qi "incorrect username or password"; then
+        log_result "OkCupid" "email" "$email" "FOUND (EMAIL EXISTS)" "" "" "" "" ""
+    else
+        log_result "OkCupid" "email" "$email" "NOT FOUND" "" "" "" "" ""
+    fi
+}
+
+check_hinge() {
+    email="$1"
+    echo "[*] Checking Hinge for $email (flagged)..."
+    log_result "Hinge" "email" "$email" "NO PUBLIC ENDPOINT â€“ FLAGGED FOR APP CHECK" "" "" "" "" ""
+}
+
+check_wickr() {
+    email="$1"
+    echo "[*] Wickr uses username-only ID â€“ email probe not supported..."
+    log_result "Wickr" "email" "$email" "NOT APPLICABLE â€“ USE USERNAME" "" "" "" "" ""
+}
+
 check_telegram() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Telegram requires phone for lookup: $email"
-    echo "Telegram,$email,NEEDS PHONE" >> results/superb-metadata.csv
-  done
+    email="$1"
+    echo "[*] Telegram account trace via email not available â€“ phone/device check required..."
+    log_result "Telegram" "email" "$email" "NO PUBLIC EMAIL ENDPOINT â€“ PHONE DEVICE PROBE ONLY" "" "" "" "" ""
 }
 
-# Seeking (simulate forgot password)
-check_seeking() {
-  for email in "${EMAILS[@]}"; do
-    echo "[*] Checking Seeking for: $email"
-    RESPONSE=$(curl -s -X POST "https://www.seeking.com/password/forgot"       -H "Content-Type: application/json"       -d '{"email":"'"$email"'"}')
-
-    if [[ "$RESPONSE" == *"Check your email"* ]]; then
-      log_found "Seeking account exists for $email"
-      echo "Seeking,$email,FOUND" >> results/superb-metadata.csv
+check_match() {
+    email="$1"
+    echo "[*] Checking Match.com for $email..."
+    url="https://www.match.com/forgotpassword"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Match.com" "email" "$email" "YES" "" "" "" "" ""
     else
-      log_not_found "Seeking account not found for $email"
-      echo "Seeking,$email,NOT FOUND" >> results/superb-metadata.csv
+        log_result "Match.com" "email" "$email" "NO" "" "" "" "" ""
     fi
-  done
 }
 
-check_facebook
-check_instagram
-check_whatsapp
-check_telegram
-check_seeking
+check_aff_metadata() {
+    email="$1"
+    echo "[*] AdultFriendFinder trace flagged for manual deep profile review..."
+    log_result "AdultFriendFinder" "email" "$email" "MANUAL FLAG â€“ PROFILE SCRAPE RECOMMENDED" "" "" "" "" ""
+}
 
-echo -e "\n✅ Next Drop 2 executed. More sites coming in next drop..."
+
+check_tagged() {
+    email="$1"
+    echo "[*] Checking Tagged for $email (flagged)..."
+    log_result "Tagged" "email" "$email" "FLAGGED â€“ NO DIRECT ENDPOINT, USE PROFILE SCAN" "" "" "" "" ""
+}
+
+check_pure() {
+    email="$1"
+    echo "[*] Checking PURE for $email (flagged)..."
+    log_result "PURE" "email" "$email" "NO EMAIL LOOKUP â€“ DEVICE/APP LINK ONLY" "" "" "" "" ""
+}
+
+check_meetme() {
+    email="$1"
+    echo "[*] Checking MeetMe for $email (reset probe)..."
+    url="https://www.meetme.com/forgot_password"
+    response=$(curl -s -X POST -d "email=$email" "$url")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "MeetMe" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "MeetMe" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_down() {
+    email="$1"
+    echo "[*] Checking DOWN App for $email (flagged)..."
+    log_result "DOWN" "email" "$email" "NO PUBLIC ENDPOINT â€“ DEVICE BASED" "" "" "" "" ""
+}
+
+check_signal() {
+    email="$1"
+    echo "[*] Signal private messenger â€“ no email probe possible..."
+    log_result "Signal" "email" "$email" "NOT TRACEABLE VIA EMAIL â€“ DEVICE ONLY" "" "" "" "" ""
+}
+
+check_badoo_metadata() {
+    email="$1"
+    echo "[*] Checking Badoo metadata endpoint..."
+    response=$(curl -s -X POST "https://badoo.com/forgot/" -d "email=$email")
+    if echo "$response" | grep -qi "email sent"; then
+        log_result "Badoo" "email" "$email" "YES â€“ POSSIBLE" "" "" "" "" ""
+    else
+        log_result "Badoo" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+extract_photo_metadata() {
+    image_path="$1"
+    echo "[*] Extracting photo metadata from $image_path..."
+    if [ -f "$image_path" ]; then
+        exiftool "$image_path" >> photo_metadata.log
+        echo "[+] Metadata saved to photo_metadata.log"
+    else
+        echo "[!] File $image_path not found!"
+    fi
+}
+
+
+check_snapchat() {
+    email="$1"
+    echo "[*] Checking Snapchat for $email (advanced metadata)..."
+    response=$(curl -s -X POST "https://accounts.snapchat.com/accounts/validate_email" -d "email=$email")
+    if echo "$response" | grep -qi "true"; then
+        log_result "Snapchat" "email" "$email" "YES â€“ REGISTERED" "" "" "" "" ""
+    else
+        log_result "Snapchat" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_kik() {
+    email="$1"
+    echo "[*] Checking Kik for $email (metadata only)..."
+    log_result "Kik" "email" "$email" "NO PUBLIC ENDPOINT â€“ CHECK VIA DEVICE OR USERNAME" "" "" "" "" ""
+}
+
+check_zoosk() {
+    email="$1"
+    echo "[*] Checking Zoosk for $email..."
+    response=$(curl -s -X POST "https://www.zoosk.com/forgotpassword" -d "email=$email")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Zoosk" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Zoosk" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_scruff() {
+    email="$1"
+    echo "[*] Checking Scruff for $email (flagged)..."
+    log_result "Scruff" "email" "$email" "FLAGGED â€“ USERNAME OR APP ID TRACE ONLY" "" "" "" "" ""
+}
+
+check_feeld() {
+    email="$1"
+    echo "[*] Checking Feeld for $email..."
+    log_result "Feeld" "email" "$email" "NO PUBLIC ENDPOINT â€“ DEVICE/EMAIL MATCH RESTRICTED" "" "" "" "" ""
+}
+
+check_tantan() {
+    email="$1"
+    echo "[*] Checking Tantan for $email (China-based)..."
+    log_result "Tantan" "email" "$email" "NO EMAIL VERIFICATION â€“ PHONE/APP BASED" "" "" "" "" ""
+}
+
+check_zoho_chat() {
+    email="$1"
+    echo "[*] Checking Zoho Chat for $email..."
+    response=$(curl -s -X POST "https://accounts.zoho.com/password" -d "LOGIN_ID=$email")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Zoho Chat" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Zoho Chat" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_teams() {
+    email="$1"
+    echo "[*] Checking Microsoft Teams (Office365) for $email..."
+    response=$(curl -s -X POST "https://login.microsoftonline.com/common/GetCredentialType" -H "Content-Type: application/json" -d "{"Username":"$email"}")
+    if echo "$response" | grep -q '"IfExistsResult":0'; then
+        log_result "Microsoft Teams" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Microsoft Teams" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+
+check_whisper() {
+    email="$1"
+    echo "[*] Checking Whisper for $email..."
+    log_result "Whisper" "email" "$email" "NO EMAIL ENDPOINT â€“ Anon/Device/Username Based Only" "" "" "" "" ""
+}
+
+check_ifunny() {
+    email="$1"
+    echo "[*] Checking iFunny for $email..."
+    log_result "iFunny" "email" "$email" "NO EMAIL ENDPOINT â€“ Check Username via Handle/Share URL" "" "" "" "" ""
+}
+
+check_eharmony() {
+    email="$1"
+    echo "[*] Checking eHarmony for $email..."
+    response=$(curl -s -X POST "https://www.eharmony.com/login/forgot-password" -d "email=$email")
+    if echo "$response" | grep -qi "check your email"; then
+        log_result "eHarmony" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "eHarmony" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_textnow() {
+    email="$1"
+    echo "[*] Checking TextNow for $email..."
+    log_result "TextNow" "email" "$email" "NO EMAIL CHECK â€“ Phone-Based App Only" "" "" "" "" ""
+}
+
+check_burner() {
+    email="$1"
+    echo "[*] Checking Burner for $email..."
+    log_result "Burner" "email" "$email" "NO PUBLIC CHECK â€“ Phone/App Based" "" "" "" "" ""
+}
+
+check_voxer() {
+    email="$1"
+    echo "[*] Checking Voxer for $email..."
+    log_result "Voxer" "email" "$email" "NO ENDPOINT â€“ Check by Username or Phone" "" "" "" "" ""
+}
+
+check_mamba() {
+    email="$1"
+    echo "[*] Checking Mamba Dating for $email..."
+    response=$(curl -s -X POST "https://www.mamba.ru/forgot" -d "email=$email")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Mamba" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Mamba" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+# Hash-based image correlation logic (example helper)
+hash_profile_image() {
+    image_path="$1"
+    echo "[*] Hashing profile image: $image_path..."
+    if [ -f "$image_path" ]; then
+        sha256sum "$image_path" | tee -a profile_hashes.log
+    else
+        echo "[!] File not found: $image_path"
+    fi
+}
+
+
+check_raya() {
+    email="$1"
+    echo "[*] Checking Raya for $email..."
+    log_result "Raya" "email" "$email" "INVITE-ONLY â€“ No public email endpoint" "" "" "" "" ""
+}
+
+check_her() {
+    email="$1"
+    echo "[*] Checking Her Dating for $email..."
+    log_result "Her" "email" "$email" "App-Based Only â€“ No public email check" "" "" "" "" ""
+}
+
+check_ashley_madison_adv() {
+    email="$1"
+    echo "[*] Checking Ashley Madison (Advanced) for $email..."
+    response=$(curl -s -X POST "https://www.ashleymadison.com/en/password-recovery" -d "email=$email")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "AshleyMadison" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "AshleyMadison" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_coffee_meets_bagel() {
+    email="$1"
+    echo "[*] Checking Coffee Meets Bagel for $email..."
+    log_result "CoffeeMeetsBagel" "email" "$email" "App Device Login Only â€“ No public endpoint" "" "" "" "" ""
+}
+
+check_happn() {
+    email="$1"
+    echo "[*] Checking Happn for $email..."
+    log_result "Happn" "email" "$email" "App-Based Only â€“ No email recovery support" "" "" "" "" ""
+}
+
+check_skout() {
+    email="$1"
+    echo "[*] Checking Skout for $email..."
+    log_result "Skout" "email" "$email" "App-Linked â€“ Email trace not supported" "" "" "" "" ""
+}
+
+check_chatavenue() {
+    email="$1"
+    echo "[*] Checking Chat Avenue for $email..."
+    log_result "ChatAvenue" "email" "$email" "Anon Chat â€“ No email registration trace" "" "" "" "" ""
+}
+
+check_interpals() {
+    email="$1"
+    echo "[*] Checking InterPals for $email..."
+    response=$(curl -s -X POST "https://www.interpals.net/forgot" -d "email=$email")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "InterPals" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "InterPals" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+flag_international_profile() {
+    email="$1"
+    echo "[*] Scanning for international language markers tied to $email..."
+    if echo "$email" | grep -Eqi "\.(ru|cn|br|de|jp|kr|pl|mx|es|fr|it)$"; then
+        log_result "InternationalProfile" "email" "$email" "YES â€“ Domain suggests non-US origin" "" "" "" "" ""
+    else
+        log_result "InternationalProfile" "email" "$email" "NO â€“ Domain not obviously international" "" "" "" "" ""
+    fi
+}
+
+
+check_google_voice() {
+    email="$1"
+    echo "[*] Checking Google Voice for $email..."
+    log_result "GoogleVoice" "email" "$email" "Tied to Gmail â€“ Check Gmail status instead" "" "" "" "" ""
+}
+
+check_line_messenger() {
+    email="$1"
+    echo "[*] Checking LINE Messenger for $email..."
+    log_result "LINE" "email" "$email" "App Only â€“ LINE login by QR/device, no email reset probe" "" "" "" "" ""
+}
+
+check_kakaotalk() {
+    email="$1"
+    echo "[*] Checking KakaoTalk for $email..."
+    log_result "KakaoTalk" "email" "$email" "App Only â€“ No public email endpoint" "" "" "" "" ""
+}
+
+check_signal() {
+    email="$1"
+    echo "[*] Checking Signal App for $email..."
+    log_result "Signal" "email" "$email" "Phone-Based App â€“ email not used" "" "" "" "" ""
+}
+
+check_protonmail() {
+    email="$1"
+    echo "[*] Checking ProtonMail for $email..."
+    response=$(curl -s -X POST "https://account.proton.me/reset-password" -d "username=$email")
+    if echo "$response" | grep -qi "we've sent you an email"; then
+        log_result "ProtonMail" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "ProtonMail" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_metamask_eth_link() {
+    email="$1"
+    echo "[*] Checking for MetaMask / ETH links tied to $email..."
+    log_result "MetaMask" "email" "$email" "No API â€” OSINT via image or txhash search only" "" "" "" "" ""
+}
+
+check_telegram_metadata() {
+    email="$1"
+    echo "[*] Checking Telegram metadata for $email..."
+    log_result "Telegram" "email" "$email" "Requires phone â€“ not traceable by email" "" "" "" "" ""
+}
+
+image_reuse_check() {
+    image_path="$1"
+    echo "[*] Running image reuse check on $image_path..."
+    hash=$(sha256sum "$image_path" | awk '{print $1}')
+    echo "[+] Image hash: $hash"
+    echo "$image_path -> $hash" >> profile_hashes.log
+    log_result "ImageReuseCheck" "image" "$image_path" "HASHED" "" "" "$hash" "" ""
+}
+
+
+check_wizz() {
+    email="$1"
+    echo "[*] Checking Wizz for $email..."
+    log_result "Wizz" "email" "$email" "App-only â€“ no email reset endpoint available" "" "" "" "" ""
+}
+
+check_hoop() {
+    email="$1"
+    echo "[*] Checking Hoop for $email..."
+    log_result "Hoop" "email" "$email" "Snap-integrated app â€“ not linked by email" "" "" "" "" ""
+}
+
+check_bereal() {
+    email="$1"
+    echo "[*] Checking BeReal for $email..."
+    log_result "BeReal" "email" "$email" "App-based only â€“ no password reset via email" "" "" "" "" ""
+}
+
+check_threads_meta() {
+    email="$1"
+    echo "[*] Checking Threads (Meta) for $email..."
+    log_result "Threads" "email" "$email" "Linked via Instagram â€“ trace IG account first" "" "" "" "" ""
+}
+
+check_twoo() {
+    email="$1"
+    echo "[*] Checking Twoo for $email..."
+    response=$(curl -s -X POST "https://www.twoo.com/login/forgot" -d "email=$email")
+    if echo "$response" | grep -qi "check your email"; then
+        log_result "Twoo" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Twoo" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_tagged() {
+    email="$1"
+    echo "[*] Checking Tagged for $email..."
+    response=$(curl -s -X POST "https://secure.tagged.com/forgot_password.html" -d "email=$email")
+    if echo "$response" | grep -qi "we sent you"; then
+        log_result "Tagged" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Tagged" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_yubo() {
+    email="$1"
+    echo "[*] Checking Yubo for $email..."
+    log_result "Yubo" "email" "$email" "App-based verification only â€“ no email trace" "" "" "" "" ""
+}
+
+check_reddit_username_match() {
+    username="$1"
+    echo "[*] Searching Reddit for reused username: $username..."
+    profile_url="https://www.reddit.com/user/$username"
+    response=$(curl -s -A 'Mozilla/5.0' "$profile_url")
+    if echo "$response" | grep -q 'Reddit Premium'; then
+        log_result "Reddit" "username" "$username" "FOUND" "$profile_url" "" "" "" ""
+    else
+        log_result "Reddit" "username" "$username" "NOT FOUND" "$profile_url" "" "" "" ""
+    fi
+}
+
+
+check_waydate() {
+    email="$1"
+    echo "[*] Checking WayDate for $email..."
+    response=$(curl -s -X POST "https://www.waydate.com/user/forgot_password" -d "email=$email")
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "WayDate" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "WayDate" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_lovoo() {
+    email="$1"
+    echo "[*] Checking Lovoo for $email..."
+    response=$(curl -s -X POST "https://www.lovoo.com/forgot-password" -d "email=$email")
+    if echo "$response" | grep -qi "check your inbox"; then
+        log_result "Lovoo" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Lovoo" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_taimi() {
+    email="$1"
+    echo "[*] Checking Taimi for $email..."
+    log_result "Taimi" "email" "$email" "App-based only â€“ no public email endpoint" "" "" "" "" ""
+}
+
+check_secret_benefits() {
+    email="$1"
+    echo "[*] Checking SecretBenefits for $email..."
+    response=$(curl -s -X POST "https://www.secretbenefits.com/password_resets" -d "email=$email")
+    if echo "$response" | grep -qi "email sent"; then
+        log_result "SecretBenefits" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "SecretBenefits" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_seeking() {
+    email="$1"
+    echo "[*] Checking Seeking for $email..."
+    response=$(curl -s -X POST "https://www.seeking.com/password-recovery" -d "email=$email")
+    if echo "$response" | grep -qi "reset email has been sent"; then
+        log_result "Seeking" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Seeking" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_whatsapp() {
+    phone="$1"
+    echo "[*] Checking WhatsApp for phone: $phone"
+    log_result "WhatsApp" "phone" "$phone" "Metadata visible via device access â€“ not checkable via email" "" "" "" "" ""
+}
+
+check_viber() {
+    phone="$1"
+    echo "[*] Checking Viber for phone: $phone"
+    log_result "Viber" "phone" "$phone" "Account exists only if verified via SMS â€“ no email probe" "" "" "" "" ""
+}
+
+check_chamet() {
+    email="$1"
+    echo "[*] Checking Chamet/Bolochat for $email..."
+    log_result "Chamet" "email" "$email" "No public password reset endpoint â€“ app only" "" "" "" "" ""
+}
+
+
+check_michat() {
+    email="$1"
+    echo "[*] Checking MiChat for $email..."
+    log_result "MiChat" "email" "$email" "App-only â€“ no public email or web endpoint" "" "" "" "" ""
+}
+
+check_upward() {
+    email="$1"
+    echo "[*] Checking Upward (Christian Mingle sibling app) for $email..."
+    response=$(curl -s -X POST "https://upward-app.com/api/v1/password/forgot" -H "Content-Type: application/json" -d '{"email":"'"$email"'"}')
+    if echo "$response" | grep -qi "email sent"; then
+        log_result "Upward" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Upward" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_skout() {
+    email="$1"
+    echo "[*] Checking Skout for $email..."
+    response=$(curl -s -X POST "https://www.skout.com/forgot" -d "email=$email")
+    if echo "$response" | grep -qi "check your inbox"; then
+        log_result "Skout" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Skout" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_blendr() {
+    email="$1"
+    echo "[*] Checking Blendr for $email..."
+    response=$(curl -s -X POST "https://blendr.com/forgot-password" -d "email=$email")
+    if echo "$response" | grep -qi "check your email"; then
+        log_result "Blendr" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Blendr" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_jaumo() {
+    email="$1"
+    echo "[*] Checking Jaumo for $email..."
+    response=$(curl -s -X POST "https://www.jaumo.com/forgot-password" -d "email=$email")
+    if echo "$response" | grep -qi "check your inbox"; then
+        log_result "Jaumo" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Jaumo" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_clover() {
+    email="$1"
+    echo "[*] Checking Clover for $email..."
+    response=$(curl -s -X POST "https://api.clover.co/v1/forgot-password" -d "email=$email")
+    if echo "$response" | grep -qi "email sent"; then
+        log_result "Clover" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Clover" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_mocospace() {
+    email="$1"
+    echo "[*] Checking Mocospace for $email..."
+    response=$(curl -s -X POST "https://www.mocospace.com/forgot-password.jsp" -d "email=$email")
+    if echo "$response" | grep -qi "reset link sent"; then
+        log_result "MocoSpace" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "MocoSpace" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_meetme() {
+    email="$1"
+    echo "[*] Checking MeetMe for $email..."
+    response=$(curl -s -X POST "https://www.meetme.com/forgot" -d "email=$email")
+    if echo "$response" | grep -qi "email sent"; then
+        log_result "MeetMe" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "MeetMe" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+
+check_jswipe() {
+    email="$1"
+    echo "[*] Checking JSwipe for $email..."
+    echo "âš ï¸ JSwipe is app-only and uses Facebook/Apple login â€“ no email-based recovery endpoint." >> superb-checker.log
+    log_result "JSwipe" "email" "$email" "App-only (OAuth)" "" "" "" "" ""
+}
+
+check_muzmatch() {
+    email="$1"
+    echo "[*] Checking Muzmatch for $email..."
+    echo "âš ï¸ Muzmatch login is also Facebook/Apple only â€“ no password reset option via email." >> superb-checker.log
+    log_result "Muzmatch" "email" "$email" "App-only (OAuth)" "" "" "" "" ""
+}
+
+check_kippo() {
+    email="$1"
+    echo "[*] Checking Kippo for $email..."
+    echo "âš ï¸ Kippo does not expose email-based recovery; account tied to phone number/device ID." >> superb-checker.log
+    log_result "Kippo" "email" "$email" "App-only (phone/device login)" "" "" "" "" ""
+}
+
+check_3fun() {
+    email="$1"
+    echo "[*] Checking 3Fun for $email..."
+    echo "âš ï¸ 3Fun app uses phone number verification â€“ no email endpoint available." >> superb-checker.log
+    log_result "3Fun" "email" "$email" "App-only (phone-based)" "" "" "" "" ""
+}
+
+check_raya() {
+    email="$1"
+    echo "[*] Checking Raya for $email..."
+    echo "âš ï¸ Raya is invite-only and fully app-based â€“ no web reset or email recovery." >> superb-checker.log
+    log_result "Raya" "email" "$email" "Invite-only app (no endpoint)" "" "" "" "" ""
+}
+
+check_alua() {
+    email="$1"
+    echo "[*] Checking Alua for $email..."
+    response=$(curl -s -X POST "https://www.alua.com/api/v1/password/email" -H "Content-Type: application/json" -d '{"email":"'"$email"'"}')
+    if echo "$response" | grep -qi "reset link sent"; then
+        log_result "Alua" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Alua" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_wild() {
+    email="$1"
+    echo "[*] Checking Wild Dating App for $email..."
+    echo "âš ï¸ Wild is app-based only and does not provide email lookup or reset." >> superb-checker.log
+    log_result "Wild" "email" "$email" "App-only (no email check)" "" "" "" "" ""
+}
+
+check_down() {
+    email="$1"
+    echo "[*] Checking DOWN Dating for $email..."
+    echo "âš ï¸ DOWN uses Facebook and phone-based login only. No recovery via email." >> superb-checker.log
+    log_result "Down" "email" "$email" "App-only (OAuth)" "" "" "" "" ""
+}
+
+
+check_tagged() {
+    email="$1"
+    echo "[*] Checking Tagged for $email..."
+    response=$(curl -s -X POST "https://api.tagged.com/api/v1.2/reset_password" -H "Content-Type: application/json" -d '{"email":"'"$email"'"}')
+    if echo "$response" | grep -qi "email has been sent"; then
+        log_result "Tagged" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Tagged" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_tantan() {
+    email="$1"
+    echo "[*] Checking Tantan for $email..."
+    echo "âš ï¸ Tantan is app-only and requires Facebook/Apple login. No email-based recovery." >> superb-checker.log
+    log_result "Tantan" "email" "$email" "OAuth (Facebook/Apple)" "" "" "" "" ""
+}
+
+check_waplog() {
+    email="$1"
+    echo "[*] Checking Waplog for $email..."
+    response=$(curl -s -X POST "https://api.waplog.com/api/v1/user/password/forgot" -H "Content-Type: application/json" -d '{"email":"'"$email"'"}')
+    if echo "$response" | grep -qi "check your email"; then
+        log_result "Waplog" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Waplog" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_hily() {
+    email="$1"
+    echo "[*] Checking Hily for $email..."
+    echo "âš ï¸ Hily requires Facebook/Apple login â€“ no recovery via email available." >> superb-checker.log
+    log_result "Hily" "email" "$email" "OAuth (Facebook/Apple)" "" "" "" "" ""
+}
+
+check_trulymadly() {
+    email="$1"
+    echo "[*] Checking TrulyMadly for $email..."
+    echo "âš ï¸ TrulyMadly account setup is phone/Facebook-based only. No email-based access." >> superb-checker.log
+    log_result "TrulyMadly" "email" "$email" "App-only (Phone/Facebook login)" "" "" "" "" ""
+}
+
+check_qeep() {
+    email="$1"
+    echo "[*] Checking Qeep for $email..."
+    response=$(curl -s -X POST "https://api.qeep.net/api/v1/reset_password" -H "Content-Type: application/json" -d '{"email":"'"$email"'"}')
+    if echo "$response" | grep -qi "password reset sent"; then
+        log_result "Qeep" "email" "$email" "YES" "" "" "" "" ""
+    else
+        log_result "Qeep" "email" "$email" "NO" "" "" "" "" ""
+    fi
+}
+
+check_zepeel() {
+    email="$1"
+    echo "[*] Checking Zepeel for $email..."
+    echo "âš ï¸ Zepeel uses Facebook or phone login only. No email recovery exposed." >> superb-checker.log
+    log_result "Zepeel" "email" "$email" "Facebook login only" "" "" "" "" ""
+}
+
+check_woo() {
+    email="$1"
+    echo "[*] Checking Woo for $email..."
+    echo "âš ï¸ Woo is app-only and login is via phone number or social login." >> superb-checker.log
+    log_result "Woo" "email" "$email" "App-only (no email)" "" "" "" "" ""
+}
