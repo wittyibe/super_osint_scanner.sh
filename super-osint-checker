@@ -3,7 +3,7 @@
 # ===================[ Superb Checker v1.0 ]===================
 # Multi-platform OSINT script to detect presence of email/phone
 # across dating apps, messenger apps, and social networks.
-# Author: OpenAI x User
+# Author: Wittyibe (Lee) & AI Assist
 # =============================================================
 
 log_file="superb-checker.log"
