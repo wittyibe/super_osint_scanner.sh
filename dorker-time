@@ -1,0 +1,48 @@
+#!/bin/bash
+# superb_socaldad74_dorker.sh
+# Ultimate alias tracking script for "SoCalDad74" across multiple platforms using Google Dorking
+# Legal and stealthy OSINT method (no direct scraping)
+
+TARGET="SoCalDad74"
+ALTERNATES=("socaldad_74" "socal_dad74" "socal.dad74" "socaldad" "KindSoul40" "SoCalGent" "SoCalRomancer")
+
+SITES=(
+  "facebook.com"
+  "instagram.com"
+  "tiktok.com"
+  "twitter.com"
+  "linkedin.com"
+  "reddit.com"
+  "pof.com"
+  "bumble.com"
+  "seeking.com"
+  "adultfriendfinder.com"
+  "skype.com"
+  "jaumo.com"
+  "meetme.com"
+  "fastpeoplesearch.com"
+  "whitepages.com"
+)
+
+echo "[*] 🔎 OSINT Super Sweep for alias: $TARGET"
+echo "[*] Timestamp: $(date)"
+echo "--------------------------------------"
+
+mkdir -p osint_logs
+LOGFILE="osint_logs/socaldad74_dork_log_$(date +%Y%m%d_%H%M%S).log"
+
+for alias in "${ALTERNATES[@]}"; do
+  echo -e "\n[+] Checking alias: $alias"
+  echo -e "\n--- Alias: $alias ---" >> "$LOGFILE"
+  for site in "${SITES[@]}"; do
+    QUERY="site:$site \"$alias\""
+    SEARCH_URL="https://www.google.com/search?q=${QUERY// /+}"
+    echo "[*] $SEARCH_URL"
+    echo "$SEARCH_URL" >> "$LOGFILE"
+    xdg-open "$SEARCH_URL" >/dev/null 2>&1 &
+    sleep 1
+  done
+done
+
+echo -e "\n✅ Done. All Google searches launched."
+echo "📁 Log file saved at: $LOGFILE"
